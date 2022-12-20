@@ -2,10 +2,7 @@
 #include <string>
 #include "TypeDefines.cpp"
 
-typedef char int8;
-typedef char cardVal;
-typedef char moveType;
-typedef char statusCode;
+
 using std::string;
 using std::map;
 
@@ -85,9 +82,9 @@ public:
             cardCount[i.first] = 0;
         }
     }
-    bool isIncludedIn(cards b) {
+    bool isIncludedIn(cards b) const {
         for (const auto &i : b.cardCount)
-            if (i.second > cardCount[i.first]) return false;
+            if (i.second > cardCount.find(i.first)->second) return false;
         return true;
     }
     bool remove(cards b) {
@@ -96,14 +93,14 @@ public:
             cardCount[i.first] -= i.second;
         return true;
     }
-    cardVal biggestCard() {
+    cardVal biggestCard() const {
         cardVal k = 0;
         for (const auto &i : cardCount) {
             if (i.second > 0 && i.first > k) k = i.first;
         }
         return k;
     }
-    int8 cardNum() {
+    int8 cardNum() const {
         int8 sum = 0;
         for (const auto &i : cardCount) {
             sum += i.second;
@@ -112,9 +109,6 @@ public:
     };
 };
 
-#define bigger 1
-#define notbigger 0
-#define illegal 2
 
 class move {
 public:
@@ -124,17 +118,17 @@ public:
     move() {
         type = TYPE_99_WRONG;
     }
-    cards totalCards() {
+    cards totalCards() const {
         cards sum = mainCard;
         for (const auto &i : subCard.cardCount) {
             sum.cardCount[i.first] += i.second;
         }
         return sum;
     };
-    int8 cardNum() {
+    int8 cardNum() const {
         return mainCard.cardNum() + subCard.cardNum();
     };
-    statusCode isBiggerThan(move b) {
+    statusCode isBiggerThan(move b) const {
         if (type == TYPE_0_PASS) return bigger;
         if (type == TYPE_5_KING_BOMB) return bigger;
         if (type == TYPE_4_BOMB && b.type != TYPE_4_BOMB) return bigger;

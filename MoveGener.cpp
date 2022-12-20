@@ -1,8 +1,11 @@
+#include <cstdint>
 #include <set>
 #include <vector>
+#include <algorithm>
 #include "DataStructure.cpp"
 using std::set;
 using std::vector;
+using std::sort;
 class possibleMoveSet {
 private:
     set<cardVal> singles;
@@ -18,6 +21,8 @@ private:
     void genSerial(const cardVal begin, const cardVal end,
                    const moveType type, const int minLength);
     vector<move> findSerialTriples(const cards &x);
+    vector<cards> genSubcards(
+        const cards &x, int8 n) const;
 
     void genTYPE_0_PASS(const cards &x);
     void genTYPE_1_SINGLE(const cards &x);
@@ -115,7 +120,8 @@ void possibleMoveSet::genTYPE_4_BOMB(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_5_KING_BOMB(const cards &x) {
-    if (x.cardCount.find(c2v['X'])->second >= 1 && x.cardCount.find(c2v['D'])->second >= 1) {
+    if (x.cardCount.find(c2v['X'])->second >= 1
+        && x.cardCount.find(c2v['D'])->second >= 1) {
         move tmp;
         tmp.type = TYPE_5_KING_BOMB;
         tmp.mainCard.cardCount[20] = 1;
@@ -228,13 +234,143 @@ vector<move> possibleMoveSet::findSerialTriples(const cards &x) {
     return result;
 }
 
+void getAnyNinM(const vector<cardVal> &x,
+                vector<vector<cardVal>::const_iterator> tmp,
+                vector<cards> &result, int8 n) {
+    vector<cardVal>::const_iterator b; // 指向第一个处理的元素
+    for (b = (tmp.empty() ? x.begin() : *(tmp.end() - 1) + 1);
+         b < x.end() - n + 1; b++) {
+        vector<vector<cardVal>::const_iterator> tmpB = tmp;
+        tmpB.push_back(b);
+        if (n == 1) {
+            cards t;
+            for (const auto &j : tmpB) {
+                t.cardCount[*j]++;
+            }
+            result.push_back(t);
+        } else {
+            getAnyNinM(x, tmpB, result, n - 1);
+        }
+    }
+}
+
+bool cardsCompare(cards &a, cards &b) {
+    for (const auto &i : a.cardCount) {
+        if (a.cardCount.find(i.first)->second < b.cardCount.find(i.first)->second) return true;
+    }
+    return false;
+}
+
+vector<cards> possibleMoveSet::genSubcards(
+    const cards &x, int8 n) const {
+    vector<cards> result;
+    vector<cardVal> tmpA;
+    for (const auto &i : x.cardCount) {
+        for (int8 j = 0; j < i.second; j++) {
+            tmpA.push_back(i.first);
+        }
+    }
+    vector<vector<cardVal>::const_iterator> tmp;
+    getAnyNinM(tmpA, tmp, result, n);
+    sort(result.begin(), result.end(), cardsCompare);
+    for (auto it = result.begin() + 1; it != result.end();) {
+        if (it->cardCount == (it - 1)->cardCount)
+            it = result.erase(it);
+        else
+            it++;
+    }
+    return result;
+}
+
 void possibleMoveSet::genTYPE_11_SERIAL_3_1(const cards &x) {
     vector<move> result = findSerialTriples(x);
     for (const auto &i : result) {
         cards tmpA = x;
         tmpA.remove(i.mainCard);
         tmpA.remove(i.subCard);
-        // 写函数枚举Cmn
+        int8 n = i.cardNum() / 3;
+        vector<cards> tmpB = genSubcards(tmpA, n);
+        for (const auto &j : tmpB) {
+            move tmp;
+            tmp.type = TYPE_11_SERIAL_3_1;
+            tmp.mainCard = i.mainCard;
+            tmp.subCard = j;
+            moveSet.push_back(tmp);
+        }
+    }
+}
+
+void possibleMoveSet::genTYPE_12_SERIAL_3_2(const cards &x) {
+    vector<move> result = findSerialTriples(x);
+    for (const auto &i : result) {
+        cards tmpA = x;
+        tmpA.remove(i.mainCard);
+        tmpA.remove(i.subCard);
+        int8 n = i.cardNum() / 3;
+        for (auto &i : tmpA.cardCount) {
+            i.second /= 2;
+        }
+        vector<cards> tmpB = genSubcards(tmpA, n);
+        for (const auto &j : tmpB) {
+            move tmp;
+            tmp.type = TYPE_12_SERIAL_3_2;
+            tmp.mainCard = i.mainCard;
+            tmp.subCard = j;
+            for (auto &k : tmp.subCard.cardCount) {
+                k.second *= 2;
+            }
+            moveSet.push_back(tmp);
+        }
+    }
+}
+
+void possibleMoveSet::genTYPE_13_4_2(const cards &x) {
+    findBombs(x);
+    vector<cards> tmpZ;
+    for (const auto &i : bombs) {
+        cards tmp;
+        tmp.cardCount[i] = 4;
+        tmpZ.push_back(tmp);
+    }
+    for (const auto &i : tmpZ) {
+        cards tmpA = x;
+        tmpA.remove(i);
+        vector<cards> tmpB = genSubcards(tmpA, 2);
+        for (const auto &j : tmpB) {
+            move tmp;
+            tmp.type = TYPE_13_4_2;
+            tmp.mainCard = i;
+            tmp.subCard = j;
+            moveSet.push_back(tmp);
+        }
+    }
+}
+
+void possibleMoveSet::genTYPE_14_4_2_2(const cards &x) {
+    findBombs(x);
+    vector<cards> tmpZ;
+    for (const auto &i : bombs) {
+        cards tmp;
+        tmp.cardCount[i] = 4;
+        tmpZ.push_back(tmp);
+    }
+    for (const auto &i : tmpZ) {
+        cards tmpA = x;
+        tmpA.remove(i);
+        for (auto &k : tmpA.cardCount) {
+            k.second /= 2;
+        }
+        vector<cards> tmpB = genSubcards(tmpA, 2);
+        for (const auto &j : tmpB) {
+            move tmp;
+            tmp.type = TYPE_14_4_2_2;
+            tmp.mainCard = i;
+            tmp.subCard = j;
+            for (auto &k : tmp.subCard.cardCount) {
+                k.second *= 2;
+            }
+            moveSet.push_back(tmp);
+        }
     }
 }
 
@@ -257,11 +393,13 @@ possibleMoveSet::possibleMoveSet(const cards &x, move lastMove) {
     }
     genTYPE_4_BOMB(x);
     genTYPE_5_KING_BOMB(x);
-    for (auto it = moveSet.begin(); it != moveSet.end();) {
-        if (it->isBiggerThan(lastMove) == false) {
-            it = moveSet.erase(it);
-        } else {
-            it++;
+    if (lastMove.type != TYPE_0_PASS) {
+        for (auto it = moveSet.begin(); it != moveSet.end();) {
+            if (it->isBiggerThan(lastMove) == false) {
+                it = moveSet.erase(it);
+            } else {
+                it++;
+            }
         }
     }
 }

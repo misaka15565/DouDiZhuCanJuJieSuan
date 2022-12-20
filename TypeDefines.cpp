@@ -1,3 +1,4 @@
+#include <cstdint>
 #define TYPE_0_PASS (0)
 #define TYPE_1_SINGLE (1)
 #define TYPE_2_PAIR (2)
@@ -18,3 +19,10 @@
 const int minSerialSingle = 5; // 最小顺子长度
 const int minSerialPair = 3;   // 最小对子长度
 const int minSerialTriple = 2; // 最小飞机长度
+typedef int8_t int8;
+typedef int8_t cardVal;
+typedef int8_t moveType;
+typedef int8_t statusCode;
+#define bigger 1
+#define notbigger 0
+#define illegal 2
