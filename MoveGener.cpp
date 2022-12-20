@@ -20,7 +20,9 @@ private:
                     const int minLength);
     void genSerial(const cardVal begin, const cardVal end,
                    const moveType type, const int minLength);
-    vector<move> findSerialTriples(const cards &x);
+    vector<cards> findSerialTriples() const;
+    vector<cards> genSerialTriples(const cardVal begin,
+                                   const cardVal end) const;
     vector<cards> genSubcards(
         const cards &x, int8 n) const;
 
@@ -211,24 +213,30 @@ void possibleMoveSet::genTYPE_10_SERIAL_TRIPLE(const cards &x) {
     findSerial(triples, TYPE_10_SERIAL_TRIPLE, minSerialTriple);
 }
 
-vector<move> possibleMoveSet::findSerialTriples(const cards &x) {
-    findTriples(x);
-    vector<move> result;
+vector<cards> possibleMoveSet::genSerialTriples(const cardVal begin,
+                                                const cardVal end) const {
+    vector<cards> result;
+    for (cardVal i = begin; i + minSerialTriple - 1 <= end; i++) {
+        for (cardVal j = i + minSerialTriple - 1; j <= end; j++) {
+            cards tmp;
+            for (cardVal k = i; k <= j; k++)
+                tmp.cardCount[k] = 3;
+            result.push_back(tmp);
+        }
+    }
+    return result;
+}
+
+vector<cards> possibleMoveSet::findSerialTriples() const {
+    vector<cards> result;
     for (cardVal i = c2v['3']; i <= c2v['A']; i++) {
         if (triples.count(i) == 0) continue;
         cardVal begin = i;
         while (triples.count(i) != 0 && i <= c2v['A']) i++;
         cardVal end = i - 1;
         if (end - begin + 1 >= minSerialTriple) {
-            for (cardVal k = begin; k + minSerialTriple - 1 <= end; k++) {
-                for (cardVal j = i + minSerialTriple - 1; j <= end; j++) {
-                    move tmp;
-                    tmp.type = TYPE_10_SERIAL_TRIPLE;
-                    for (cardVal k = i; k <= j; k++)
-                        tmp.mainCard.cardCount[k] = 3;
-                    result.push_back(tmp);
-                }
-            }
+            vector<cards> tmp = genSerialTriples(begin, end);
+            result.insert(result.end(), tmp.begin(), tmp.end());
         }
     }
     return result;
@@ -237,6 +245,7 @@ vector<move> possibleMoveSet::findSerialTriples(const cards &x) {
 void getAnyNinM(const vector<cardVal> &x,
                 vector<vector<cardVal>::const_iterator> tmp,
                 vector<cards> &result, int8 n) {
+    if (x.size() < n) return;
     vector<cardVal>::const_iterator b; // 指向第一个处理的元素
     for (b = (tmp.empty() ? x.begin() : *(tmp.end() - 1) + 1);
          b < x.end() - n + 1; b++) {
@@ -254,13 +263,6 @@ void getAnyNinM(const vector<cardVal> &x,
     }
 }
 
-bool cardsCompare(cards &a, cards &b) {
-    for (const auto &i : a.cardCount) {
-        if (a.cardCount.find(i.first)->second < b.cardCount.find(i.first)->second) return true;
-    }
-    return false;
-}
-
 vector<cards> possibleMoveSet::genSubcards(
     const cards &x, int8 n) const {
     vector<cards> result;
@@ -272,28 +274,23 @@ vector<cards> possibleMoveSet::genSubcards(
     }
     vector<vector<cardVal>::const_iterator> tmp;
     getAnyNinM(tmpA, tmp, result, n);
-    sort(result.begin(), result.end(), cardsCompare);
-    for (auto it = result.begin() + 1; it != result.end();) {
-        if (it->cardCount == (it - 1)->cardCount)
-            it = result.erase(it);
-        else
-            it++;
-    }
+    sort(result.begin(), result.end());
+    result.erase(std::unique(result.begin(), result.end()), result.end());
     return result;
 }
 
 void possibleMoveSet::genTYPE_11_SERIAL_3_1(const cards &x) {
-    vector<move> result = findSerialTriples(x);
+    findTriples(x);
+    vector<cards> result = findSerialTriples();
     for (const auto &i : result) {
         cards tmpA = x;
-        tmpA.remove(i.mainCard);
-        tmpA.remove(i.subCard);
+        tmpA.remove(i);
         int8 n = i.cardNum() / 3;
         vector<cards> tmpB = genSubcards(tmpA, n);
         for (const auto &j : tmpB) {
             move tmp;
             tmp.type = TYPE_11_SERIAL_3_1;
-            tmp.mainCard = i.mainCard;
+            tmp.mainCard = i;
             tmp.subCard = j;
             moveSet.push_back(tmp);
         }
@@ -301,20 +298,20 @@ void possibleMoveSet::genTYPE_11_SERIAL_3_1(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_12_SERIAL_3_2(const cards &x) {
-    vector<move> result = findSerialTriples(x);
+    findTriples(x);
+    vector<cards> result = findSerialTriples();
     for (const auto &i : result) {
         cards tmpA = x;
-        tmpA.remove(i.mainCard);
-        tmpA.remove(i.subCard);
+        tmpA.remove(i);
         int8 n = i.cardNum() / 3;
-        for (auto &i : tmpA.cardCount) {
-            i.second /= 2;
+        for (auto &k : tmpA.cardCount) {
+            k.second /= 2;
         }
         vector<cards> tmpB = genSubcards(tmpA, n);
         for (const auto &j : tmpB) {
             move tmp;
             tmp.type = TYPE_12_SERIAL_3_2;
-            tmp.mainCard = i.mainCard;
+            tmp.mainCard = i;
             tmp.subCard = j;
             for (auto &k : tmp.subCard.cardCount) {
                 k.second *= 2;
@@ -378,6 +375,20 @@ possibleMoveSet::possibleMoveSet(const cards &x, move lastMove) {
     genTYPE_0_PASS(x);
     if (lastMove.type == TYPE_5_KING_BOMB) return;
     switch (lastMove.type) {
+    case TYPE_0_PASS:
+        genTYPE_1_SINGLE(x);
+        genTYPE_2_PAIR(x);
+        genTYPE_3_TRIPLE(x);
+        genTYPE_6_3_1(x);
+        genTYPE_7_3_2(x);
+        genTYPE_8_SERIAL_SINGLE(x);
+        genTYPE_9_SERIAL_PAIR(x);
+        genTYPE_10_SERIAL_TRIPLE(x);
+        genTYPE_11_SERIAL_3_1(x);
+        genTYPE_12_SERIAL_3_2(x);
+        genTYPE_13_4_2(x);
+        genTYPE_14_4_2_2(x);
+        break;
     case TYPE_1_SINGLE: genTYPE_1_SINGLE(x); break;
     case TYPE_2_PAIR: genTYPE_2_PAIR(x); break;
     case TYPE_3_TRIPLE: genTYPE_3_TRIPLE(x); break;

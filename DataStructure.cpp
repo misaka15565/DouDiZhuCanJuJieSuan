@@ -2,7 +2,6 @@
 #include <string>
 #include "TypeDefines.cpp"
 
-
 using std::string;
 using std::map;
 
@@ -108,8 +107,15 @@ public:
         return sum;
     };
 };
-
-
+bool operator==(const cards &a, const cards &b) {
+    return a.cardCount == b.cardCount;
+}
+bool operator<(const cards &a,const cards &b) {
+    for (cardVal i:{3,4,5,6,7,8,9,10,11,12,13,14,18,20,30}) {
+        if (a.cardCount.find(i)->second < b.cardCount.find(i)->second) return true;
+    }
+    return false;
+}
 class move {
 public:
     cards mainCard;
