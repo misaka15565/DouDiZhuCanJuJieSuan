@@ -406,7 +406,7 @@ possibleMoveSet::possibleMoveSet(const cards &x, move lastMove) {
     genTYPE_5_KING_BOMB(x);
     if (lastMove.type != TYPE_0_PASS) {
         for (auto it = moveSet.begin(); it != moveSet.end();) {
-            if (it->isBiggerThan(lastMove) == false) {
+            if (it->isBiggerThan(lastMove) != bigger) {
                 it = moveSet.erase(it);
             } else {
                 it++;
