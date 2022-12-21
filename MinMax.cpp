@@ -15,33 +15,33 @@ string status2id(const status &x) {
     string id;
     char tmp[200] = {0};
     int k = 0;
-    for (const auto &i : x.ourCards.cardCount) {
-        for (int8 j = 0; j < i.second; j++) {
-            tmp[k] = i.first + 'A';
+    for (int8 i=0;i<N;i++) {
+        for (int8 j = 0; j < x.ourCards.cardCount[i]; j++) {
+            tmp[k] = i + 'A';
             k++;
         }
     }
     tmp[k] = '|';
     k++;
-    for (const auto &i : x.enemyCards.cardCount) {
-        for (int8 j = 0; j < i.second; j++) {
-            tmp[k] = i.first + 'A';
+    for (int8 i=0;i<N;i++) {
+        for (int8 j = 0; j < x.enemyCards.cardCount[i]; j++) {
+            tmp[k] = i + 'A';
             k++;
         }
     }
     tmp[k] = '|';
     k++;
-    for (const auto &i : x.lastMove.mainCard.cardCount) {
-        for (int8 j = 0; j < i.second; j++) {
-            tmp[k] = i.first + 'A';
+    for (int8 i=0;i<N;i++) {
+        for (int8 j = 0; j < x.lastMove.mainCard.cardCount[i]; j++) {
+            tmp[k] = i + 'A';
             k++;
         }
     }
     tmp[k] = '|';
     k++;
-    for (const auto &i : x.lastMove.subCard.cardCount) {
-        for (int8 j = 0; j < i.second; j++) {
-            tmp[k] = i.first + 'A';
+    for (int8 i=0;i<N;i++) {
+        for (int8 j = 0; j < x.lastMove.subCard.cardCount[i]; j++) {
+            tmp[k] = i + 'A';
             k++;
         }
     }

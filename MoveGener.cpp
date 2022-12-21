@@ -49,29 +49,29 @@ public:
 
 void possibleMoveSet::findSingles(const cards &x) {
     if (singles.empty() == false) return;
-    for (const auto &i : x.cardCount) {
-        if (i.second >= 1) singles.insert(i.first);
+    for (int8 i=0;i<N;i++) {
+        if (x.cardCount[i] >= 1) singles.insert(i);
     }
 }
 
 void possibleMoveSet::findPairs(const cards &x) {
     if (pairs.empty() == false) return;
-    for (const auto &i : x.cardCount) {
-        if (i.second >= 2) pairs.insert(i.first);
+    for (int8 i=0;i<N;i++) {
+        if (x.cardCount[i] >= 2) pairs.insert(i);
     }
 }
 
 void possibleMoveSet::findTriples(const cards &x) {
     if (triples.empty() == false) return;
-    for (const auto &i : x.cardCount) {
-        if (i.second >= 3) triples.insert(i.first);
+    for (int8 i=0;i<N;i++) {
+        if (x.cardCount[i] >= 3) triples.insert(i);
     }
 }
 
 void possibleMoveSet::findBombs(const cards &x) {
     if (bombs.empty() == false) return;
-    for (const auto &i : x.cardCount) {
-        if (i.second >= 4) bombs.insert(i.first);
+    for (int8 i=0;i<N;i++) {
+        if (x.cardCount[i] >= 4) bombs.insert(i);
     }
 }
 
@@ -122,8 +122,8 @@ void possibleMoveSet::genTYPE_4_BOMB(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_5_KING_BOMB(const cards &x) {
-    if (x.cardCount.find(c2v['X'])->second >= 1
-        && x.cardCount.find(c2v['D'])->second >= 1) {
+    if (x.cardCount[c2v['X']] >= 1
+        && x.cardCount[c2v['D']] >= 1) {
         move tmp;
         tmp.type = TYPE_5_KING_BOMB;
         tmp.mainCard.cardCount[20] = 1;
@@ -267,9 +267,9 @@ vector<cards> possibleMoveSet::genSubcards(
     const cards &x, int8 n) const {
     vector<cards> result;
     vector<cardVal> tmpA;
-    for (const auto &i : x.cardCount) {
-        for (int8 j = 0; j < i.second; j++) {
-            tmpA.push_back(i.first);
+    for (int8 i=0;i<N;i++) {
+        for (int8 j = 0; j < x.cardCount[i]; j++) {
+            tmpA.push_back(i);
         }
     }
     vector<vector<cardVal>::const_iterator> tmp;
@@ -305,7 +305,7 @@ void possibleMoveSet::genTYPE_12_SERIAL_3_2(const cards &x) {
         tmpA.remove(i);
         int8 n = i.cardNum() / 3;
         for (auto &k : tmpA.cardCount) {
-            k.second /= 2;
+            k /= 2;
         }
         vector<cards> tmpB = genSubcards(tmpA, n);
         for (const auto &j : tmpB) {
@@ -314,7 +314,7 @@ void possibleMoveSet::genTYPE_12_SERIAL_3_2(const cards &x) {
             tmp.mainCard = i;
             tmp.subCard = j;
             for (auto &k : tmp.subCard.cardCount) {
-                k.second *= 2;
+                k *= 2;
             }
             moveSet.push_back(tmp);
         }
@@ -355,7 +355,7 @@ void possibleMoveSet::genTYPE_14_4_2_2(const cards &x) {
         cards tmpA = x;
         tmpA.remove(i);
         for (auto &k : tmpA.cardCount) {
-            k.second /= 2;
+            k /= 2;
         }
         vector<cards> tmpB = genSubcards(tmpA, 2);
         for (const auto &j : tmpB) {
@@ -364,7 +364,7 @@ void possibleMoveSet::genTYPE_14_4_2_2(const cards &x) {
             tmp.mainCard = i;
             tmp.subCard = j;
             for (auto &k : tmp.subCard.cardCount) {
-                k.second *= 2;
+                k *= 2;
             }
             moveSet.push_back(tmp);
         }

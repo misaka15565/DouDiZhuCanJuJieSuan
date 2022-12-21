@@ -5,15 +5,15 @@ using std::endl;
 void ptmove(move x) {
     cout << MOVE_TYPES_STR[x.type];
     cout << "|| ";
-    for (auto i : x.mainCard.cardCount) {
-        for (int8 j = 0; j < i.second; j++) {
-            cout << v2s[i.first] << " ";
+    for (int8 i=0;i<N;i++) {
+        for (int8 j = 0; j < x.mainCard.cardCount[i]; j++) {
+            cout << v2s[i] << " ";
         }
     }
     cout << "|| ";
-    for (auto i : x.subCard.cardCount) {
-        for (int8 j = 0; j < i.second; j++) {
-            cout << v2s[i.first] << " ";
+    for (int8 i=0;i<N;i++) {
+        for (int8 j = 0; j < x.subCard.cardCount[i]; j++) {
+            cout << v2s[i] << " ";
         }
     }
     cout << endl;

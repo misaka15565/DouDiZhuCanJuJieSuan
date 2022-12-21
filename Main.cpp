@@ -5,9 +5,9 @@ using std::cout;
 using std::cin;
 using std::endl;
 void ptcards(const cards &x) {
-    for (auto i : x.cardCount) {
-        for (int8 j = 0; j < i.second; j++) {
-            cout << v2s[i.first] << " ";
+    for (int8 i=0;i<N;i++) {
+        for (int8 j = 0; j < x.cardCount[i]; j++) {
+            cout << v2s[i] << " ";
         }
     }
     cout << endl;

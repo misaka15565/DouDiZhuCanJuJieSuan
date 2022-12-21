@@ -1,9 +1,13 @@
+#include <corecrt.h>
+#include <cstring>
 #include <map>
 #include <string>
+#include <array>
 #include "TypeDefines.cpp"
 
 using std::string;
 using std::map;
+using std::array;
 
 map<moveType, string> MOVE_TYPES_STR({{TYPE_0_PASS, "过"},
                                       {TYPE_1_SINGLE, "单张"},
@@ -38,56 +42,57 @@ map<char, cardVal> c2v = {
     {'k', 13},
     {'A', 14},
     {'a', 14},
-    {'2', 18},
-    {'X', 20},
-    {'x', 20},
-    {'D', 30},
-    {'d', 30},
+    {'2', 16},
+    {'X', 18},
+    {'x', 18},
+    {'D', 20},
+    {'d', 20},
 };
 
-map<cardVal, string> v2s = {{3, "3"}, {4, "4"}, {5, "5"}, {6, "6"}, {7, "7"}, {8, "8"}, {9, "9"}, {10, "10"}, {11, "J"}, {12, "Q"}, {13, "K"}, {14, "A"}, {18, "2"}, {20, "小王"}, {30, "大王"}};
-
+map<cardVal, string> v2s = {{3, "3"}, {4, "4"}, {5, "5"}, {6, "6"}, {7, "7"}, {8, "8"}, {9, "9"}, {10, "10"}, {11, "J"}, {12, "Q"}, {13, "K"}, {14, "A"}, {16, "2"}, {18, "小王"}, {20, "大王"}};
+#define N 21
 class cards {
 public:
     // CardValue,CardCount
-    map<cardVal, int8> cardCount;
-    cards() {
-        for (const auto &i : v2s) {
-            cardCount[i.first] = 0;
-        }
-    }
+    // map<cardVal, int8> cardCount;
+    array<cardVal, N> cardCount;
     bool isIncludedIn(cards b) const {
-        for (const auto &i : b.cardCount)
-            if (i.second > cardCount.find(i.first)->second) return false;
+        for (int8 i = 0; i < N; i++)
+            if (b.cardCount[i] > cardCount[i]) return false;
         return true;
     }
     bool remove(cards b) {
         if (isIncludedIn(b) != true) return false;
-        for (const auto &i : b.cardCount)
-            cardCount[i.first] -= i.second;
+        for (int8 i = 0; i < N; i++)
+            cardCount[i] -= b.cardCount[i];
         return true;
     }
     cardVal biggestCard() const {
         cardVal k = 0;
-        for (const auto &i : cardCount) {
-            if (i.second > 0 && i.first > k) k = i.first;
+        for (int8 i = 0; i < N; i++) {
+            if (cardCount[i] > 0 && i > k) k = i;
         }
         return k;
     }
     int8 cardNum() const {
         int8 sum = 0;
-        for (const auto &i : cardCount) {
-            sum += i.second;
+        for (int8 i = 0; i < N; i++) {
+            sum += cardCount[i];
         }
         return sum;
     };
+    cards();
 };
+cards::cards() :
+    cardCount({}){
+
+    }
 bool operator==(const cards &a, const cards &b) {
     return a.cardCount == b.cardCount;
 }
 bool operator<(const cards &a, const cards &b) {
-    for (cardVal i : {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 20, 30}) {
-        if (a.cardCount.find(i)->second < b.cardCount.find(i)->second) return true;
+    for (int8 i = 0; i < N; i++) {
+        if (a.cardCount[i] < b.cardCount[i]) return true;
     }
     return false;
 }
@@ -101,8 +106,8 @@ public:
     }
     cards totalCards() const {
         cards sum = mainCard;
-        for (const auto &i : subCard.cardCount) {
-            sum.cardCount[i.first] += i.second;
+        for (int8 i = 0; i < N; i++) {
+            sum.cardCount[i] += subCard.cardCount[i];
         }
         return sum;
     };
