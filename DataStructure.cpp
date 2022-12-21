@@ -5,22 +5,21 @@
 using std::string;
 using std::map;
 
-map<moveType, string> MOVE_TYPES_STR({{TYPE_0_PASS, "Pass"},
-                                      {TYPE_1_SINGLE, "Single"},
-                                      {TYPE_2_PAIR, "Pair"},
-                                      {TYPE_3_TRIPLE, "Triple"},
-                                      {TYPE_4_BOMB, "Bomb!"},
-                                      {TYPE_5_KING_BOMB, "King Bomb!!!"},
-                                      {TYPE_6_3_1, "3 + 1"},
-                                      {TYPE_7_3_2, "3 + 2"},
-                                      {TYPE_8_SERIAL_SINGLE, "Serial Single"},
-                                      {TYPE_9_SERIAL_PAIR, "Serial Pair"},
-                                      {TYPE_10_SERIAL_TRIPLE, "Serial Triple"},
-                                      {TYPE_11_SERIAL_3_1, "Serial 3 + 1"},
-                                      {TYPE_12_SERIAL_3_2, "Serial 3 + 2"},
-                                      {TYPE_13_4_2, "4 + 2"},
-                                      {TYPE_14_4_2_2, "4 + 2 Pairs"},
-                                      {TYPE_99_WRONG, "Wrong Type!"}});
+map<moveType, string> MOVE_TYPES_STR({{TYPE_0_PASS, "过"},
+                                      {TYPE_1_SINGLE, "单张"},
+                                      {TYPE_2_PAIR, "对子"},
+                                      {TYPE_3_TRIPLE, "三张"},
+                                      {TYPE_4_BOMB, "炸弹!"},
+                                      {TYPE_5_KING_BOMB, "王炸"},
+                                      {TYPE_6_3_1, "三带一"},
+                                      {TYPE_7_3_2, "三带二"},
+                                      {TYPE_8_SERIAL_SINGLE, "顺子"},
+                                      {TYPE_9_SERIAL_PAIR, "连对"},
+                                      {TYPE_10_SERIAL_TRIPLE, "飞机"},
+                                      {TYPE_11_SERIAL_3_1, "3带1组成的飞机"},
+                                      {TYPE_12_SERIAL_3_2, "3带2组成的飞机"},
+                                      {TYPE_13_4_2, "四带二"},
+                                      {TYPE_14_4_2_2, "四带两对"}});
 
 map<string, cardVal> s2v = {
     {"3", 3},
@@ -122,7 +121,7 @@ public:
     cards subCard;
     moveType type;
     move() {
-        type = TYPE_99_WRONG;
+        type = TYPE_0_PASS;
     }
     cards totalCards() const {
         cards sum = mainCard;
@@ -147,3 +146,7 @@ public:
         return illegal;
     };
 };
+
+bool operator==(const move &a, const move &b) {
+    return a.mainCard == b.mainCard && a.subCard == b.subCard && a.type == b.type;
+}

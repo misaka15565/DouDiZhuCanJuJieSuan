@@ -14,7 +14,6 @@
 #define TYPE_12_SERIAL_3_2 (12)
 #define TYPE_13_4_2 (13)
 #define TYPE_14_4_2_2 (14)
-#define TYPE_99_WRONG (99)
 
 const int minSerialSingle = 5; // 最小顺子长度
 const int minSerialPair = 3;   // 最小对子长度
