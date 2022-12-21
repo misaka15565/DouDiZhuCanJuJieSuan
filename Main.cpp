@@ -88,8 +88,10 @@ int main(int argc, char **argv) {
     enemys = str2cards(strenemycards);
     cout << "我方的牌：";
     ptcards(ours);
+    cout<<endl;
     cout << "对方的牌：";
     ptcards(enemys);
+    cout<<endl;
     clock_t start, end;
     status x;
     move tmp;
