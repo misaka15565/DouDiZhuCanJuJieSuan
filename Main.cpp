@@ -10,7 +10,6 @@ void ptcards(const cards &x) {
             cout << v2s[i] << " ";
         }
     }
-    cout << endl;
 }
 void ptmove(const move &x) {
     cout << MOVE_TYPES_STR[x.type];
@@ -39,7 +38,7 @@ move getMove(const cards &x, move lastMove) {
         cout << "---------------------------\n";
         cout << "牌：";
         ptcards(x);
-        cout << "上一次出牌：";
+        cout << "\n上一次出牌：";
         ptmove(lastMove);
         cout << "---------------------------\n";
         for (const auto &i : MOVE_TYPES_STR) {
@@ -103,8 +102,10 @@ int main(int argc, char **argv) {
         cout << "开始计算\n";
         cout << "我方的牌：";
         ptcards(x.ourCards);
+        cout<<endl;
         cout << "对方的牌：";
         ptcards(x.enemyCards);
+        cout<<endl;
         start = clock();
         returned_result result = minMaxSearch(x);
         end = clock();
