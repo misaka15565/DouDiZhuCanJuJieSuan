@@ -372,7 +372,7 @@ void possibleMoveSet::genTYPE_14_4_2_2(const cards &x) {
 }
 
 possibleMoveSet::possibleMoveSet(const cards &x, move lastMove) {
-    genTYPE_0_PASS(x);
+    if (lastMove.type != TYPE_0_PASS) genTYPE_0_PASS(x);
     if (lastMove.type == TYPE_5_KING_BOMB) return;
     switch (lastMove.type) {
     case TYPE_0_PASS:

@@ -110,8 +110,8 @@ public:
 bool operator==(const cards &a, const cards &b) {
     return a.cardCount == b.cardCount;
 }
-bool operator<(const cards &a,const cards &b) {
-    for (cardVal i:{3,4,5,6,7,8,9,10,11,12,13,14,18,20,30}) {
+bool operator<(const cards &a, const cards &b) {
+    for (cardVal i : {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 20, 30}) {
         if (a.cardCount.find(i)->second < b.cardCount.find(i)->second) return true;
     }
     return false;
@@ -135,7 +135,7 @@ public:
         return mainCard.cardNum() + subCard.cardNum();
     };
     statusCode isBiggerThan(move b) const {
-        if (type == TYPE_0_PASS) return bigger;
+        if (type == TYPE_0_PASS && b.type != TYPE_0_PASS) return bigger;
         if (type == TYPE_5_KING_BOMB) return bigger;
         if (type == TYPE_4_BOMB && b.type != TYPE_4_BOMB) return bigger;
         if (b.type == TYPE_5_KING_BOMB) return notbigger;
