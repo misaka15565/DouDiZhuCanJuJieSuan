@@ -38,9 +38,9 @@ move getMove(const cards &x, move lastMove) {
         cout << "---------------------------\n";
         cout << "对方的牌：";
         ptcards(x);
-        cout << "\n我方上一次出牌：\n";
-        cout << "请输入对方出的牌\n";
+        cout << "\n我方上一次出牌：";
         ptmove(lastMove);
+        cout << "请输入对方出的牌\n";
         cout << "---------------------------\n";
         for (const auto &i : MOVE_TYPES_STR) {
             cout << (int)i.first << "<=>" << i.second << " ";
