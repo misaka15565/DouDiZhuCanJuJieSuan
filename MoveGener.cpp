@@ -49,28 +49,28 @@ public:
 
 void possibleMoveSet::findSingles(const cards &x) {
     if (singles.empty() == false) return;
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         if (x.cardCount[i] >= 1) singles.insert(i);
     }
 }
 
 void possibleMoveSet::findPairs(const cards &x) {
     if (pairs.empty() == false) return;
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         if (x.cardCount[i] >= 2) pairs.insert(i);
     }
 }
 
 void possibleMoveSet::findTriples(const cards &x) {
     if (triples.empty() == false) return;
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         if (x.cardCount[i] >= 3) triples.insert(i);
     }
 }
 
 void possibleMoveSet::findBombs(const cards &x) {
     if (bombs.empty() == false) return;
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         if (x.cardCount[i] >= 4) bombs.insert(i);
     }
 }
@@ -126,8 +126,8 @@ void possibleMoveSet::genTYPE_5_KING_BOMB(const cards &x) {
         && x.cardCount[c2v['D']] >= 1) {
         move tmp;
         tmp.type = TYPE_5_KING_BOMB;
-        tmp.mainCard.cardCount[20] = 1;
-        tmp.mainCard.cardCount[30] = 1;
+        tmp.mainCard.cardCount[c2v['X']] = 1;
+        tmp.mainCard.cardCount[c2v['D']] = 1;
         moveSet.push_back(tmp);
     }
 }
@@ -267,7 +267,7 @@ vector<cards> possibleMoveSet::genSubcards(
     const cards &x, int8 n) const {
     vector<cards> result;
     vector<cardVal> tmpA;
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         for (int8 j = 0; j < x.cardCount[i]; j++) {
             tmpA.push_back(i);
         }

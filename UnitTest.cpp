@@ -22,10 +22,12 @@ int main(int argc, char **argv) {
     move lastMove;
     lastMove.type = TYPE_0_PASS;
     cards ours;
-    ours.cardCount[c2v['3']] = 4;
-    ours.cardCount[c2v['4']] = 1;
+    ours.cardCount[c2v['d']] = 1;
+    ours.cardCount[c2v['x']] = 1;
     cards enemy;
     enemy.cardCount[c2v['5']] = 1;
+    enemy.cardCount[c2v['3']] = 0;
+    enemy.cardCount[c2v['4']] = 0;
     status x={ours,enemy,lastMove,our};
     returned_result result=minMaxSearch(x);
     possibleMoveSet t(ours,lastMove);
