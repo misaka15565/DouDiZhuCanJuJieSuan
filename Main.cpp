@@ -13,7 +13,6 @@ void ptcards(const cards &x) {
 }
 void ptmove(const move &x) {
     cout << MOVE_TYPES_STR[x.type];
-    cout << "-- ";
     ptcards(x.mainCard);
     if (x.subCard.cardNum() != 0) {
         cout << "-- ";
@@ -33,55 +32,51 @@ cards str2cards(const string &x) {
     return result;
 }
 move getMove(const cards &x, move lastMove) {
+    possibleMoveSet p(x, lastMove);
     while (true) {
-        move result;
         cout << "---------------------------\n";
         cout << "对方的牌：";
         ptcards(x);
         cout << "\n我方上一次出牌：";
         ptmove(lastMove);
-        cout << "请输入对方出的牌\n";
+        cout << "请输入对方出的牌：\n";
         cout << "---------------------------\n";
-        for (const auto &i : MOVE_TYPES_STR) {
-            cout << (int)i.first << "<=>" << i.second << " ";
-        }
-        cout << "\n请输入牌型代码：\n";
         string t;
         cin >> t;
         if (t == "e") exit(0);
-        int8 type = std::stoi(t);
-        if (MOVE_TYPES_STR.find(type) == MOVE_TYPES_STR.end()) {
-            cout << "输入错误，请从头重新输入\n";
-            continue;
+        cards c = str2cards(t);
+        vector<move> plist;
+        for (const auto &i : p.moveSet) {
+            if (c == i.totalCards()) plist.push_back(i);
         }
-        result.type = type;
-        if (type != TYPE_0_PASS) {
-            cout << "请输入主要牌：\n";
-            cin >> t;
-            if (t != "p") result.mainCard = str2cards(t);
-            if (type == TYPE_6_3_1 || type == TYPE_7_3_2 || type == TYPE_11_SERIAL_3_1 || type == TYPE_12_SERIAL_3_2 || type == TYPE_13_4_2 || type == TYPE_14_4_2_2) {
-                cout << "请输入附带牌：\n";
-                cin >> t;
-                if (t != "p") result.subCard = str2cards(t);
+        if (plist.size() == 0) {
+            cout << "输入错误，请重新输入\n";
+            continue;
+        } else if (plist.size() == 1) {
+            cout << "对方出牌：";
+            ptmove(plist[0]);
+            return plist[0];
+        } else {
+            for (int k = 0; k < plist.size(); k++) {
+                cout << "编号：" << k << "  牌型：";
+                ptmove(plist[k]);
+            }
+            cout << "请输入对方所出的牌的对应编号：";
+            int k;
+            cin >> k;
+            if (k >= 0 && k < plist.size())
+                return plist[k];
+            else {
+                cout << "输入错误，请从头重新输入\n";
+                continue;
             }
         }
-        possibleMoveSet p(x, lastMove);
-        if (std::find(p.moveSet.begin(), p.moveSet.end(), result) == p.moveSet.end()) {
-            cout << "输入错误或输入不可能，请从头重新输入\n";
-            continue;
-        }
-        return result;
     }
 }
 int main(int argc, char *argv[]) {
     cout << "---------------------------\n";
     cout << "在任何能输入的时候输入e - 结束本次计算" << endl;
-    cout << "---------------------------\n";
     cout << "x小王 d大王 0代表10\n";
-    cout << "三带一、三带二、四带二、四带两对、飞机这些牌型分主要牌和附带牌\n";
-    cout << "其他牌型（单张、对子、三张、炸弹、王炸、顺子、连对、没翅膀的飞机）不分主要牌和附带牌，请在提示输入主要牌时输入全部的牌\n";
-    cout << "主要牌指三带一、三带二中的三，四带二、四带两对的四，飞机的机体\n";
-    cout << "如3334中的333，44445566中的4444,33344456中的333444\n";
     cout << "---------------------------\n";
     string strourcards;
     string strenemycards;
@@ -143,7 +138,7 @@ int main(int argc, char *argv[]) {
             cout << "我方胜利\n";
             exit(0);
         }
-        cout << "请输入对方出的牌：\n";
+        //cout << "请输入对方出的牌：\n";
         tmp = getMove(x.enemyCards, result.bestMove);
         x.enemyCards.remove(tmp.mainCard);
         x.enemyCards.remove(tmp.subCard);
