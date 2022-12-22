@@ -13,7 +13,7 @@ void ptcards(const cards &x) {
 }
 void ptmove(const move &x) {
     cout << MOVE_TYPES_STR[x.type];
-    cout<<" ";
+    cout << " ";
     ptcards(x.mainCard);
     if (x.subCard.cardNum() != 0) {
         cout << "- ";
@@ -77,7 +77,7 @@ move getMove(const cards &x, move lastMove) {
 int main(int argc, char *argv[]) {
     cout << "---------------------------\n";
     cout << "在任何能输入的时候输入e - 结束本次计算" << endl;
-    cout << "x小王 d大王 0代表10\n";
+    cout << "x小王 d大王 0代表10 p表示过\n";
     cout << "---------------------------\n";
     string strourcards;
     string strenemycards;
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
             cout << "我方胜利\n";
             exit(0);
         }
-        //cout << "请输入对方出的牌：\n";
+        // cout << "请输入对方出的牌：\n";
         tmp = getMove(x.enemyCards, result.bestMove);
         x.enemyCards.remove(tmp.mainCard);
         x.enemyCards.remove(tmp.subCard);
