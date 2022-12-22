@@ -13,9 +13,10 @@ void ptcards(const cards &x) {
 }
 void ptmove(const move &x) {
     cout << MOVE_TYPES_STR[x.type];
+    cout<<" ";
     ptcards(x.mainCard);
     if (x.subCard.cardNum() != 0) {
-        cout << "-- ";
+        cout << "- ";
         ptcards(x.subCard);
     }
     cout << endl;
