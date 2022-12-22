@@ -5,7 +5,7 @@ using std::cout;
 using std::cin;
 using std::endl;
 void ptcards(const cards &x) {
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         for (int8 j = 0; j < x.cardCount[i]; j++) {
             cout << v2s[i] << " ";
         }
@@ -36,30 +36,35 @@ move getMove(const cards &x, move lastMove) {
     while (true) {
         move result;
         cout << "---------------------------\n";
-        cout << "牌：";
+        cout << "对方的牌：";
         ptcards(x);
-        cout << "\n上一次出牌：";
+        cout << "\n我方上一次出牌：\n";
+        cout << "请输入对方出的牌\n";
         ptmove(lastMove);
         cout << "---------------------------\n";
         for (const auto &i : MOVE_TYPES_STR) {
             cout << (int)i.first << "<=>" << i.second << " ";
         }
         cout << "\n请输入牌型代码：\n";
-        int type;
-        cin >> type;
-        type %= 0x100;
+        string t;
+        cin >> t;
+        if (t == "e") exit(0);
+        int8 type = std::stoi(t);
         if (MOVE_TYPES_STR.find(type) == MOVE_TYPES_STR.end()) {
             cout << "输入错误，请从头重新输入\n";
             continue;
         }
         result.type = type;
-        cout << "请输入主要牌，若牌型为过请输入p：\n";
-        string t;
-        cin >> t;
-        if (t != "p") result.mainCard = str2cards(t);
-        cout << "请输入次要牌，若无请输入p：\n";
-        cin >> t;
-        if (t != "p") result.subCard = str2cards(t);
+        if (type != TYPE_0_PASS) {
+            cout << "请输入主要牌：\n";
+            cin >> t;
+            if (t != "p") result.mainCard = str2cards(t);
+            if (type == TYPE_6_3_1 || type == TYPE_7_3_2 || type == TYPE_11_SERIAL_3_1 || type == TYPE_12_SERIAL_3_2 || type == TYPE_13_4_2 || type == TYPE_14_4_2_2) {
+                cout << "请输入附带牌：\n";
+                cin >> t;
+                if (t != "p") result.subCard = str2cards(t);
+            }
+        }
         possibleMoveSet p(x, lastMove);
         if (std::find(p.moveSet.begin(), p.moveSet.end(), result) == p.moveSet.end()) {
             cout << "输入错误或输入不可能，请从头重新输入\n";
@@ -68,11 +73,13 @@ move getMove(const cards &x, move lastMove) {
         return result;
     }
 }
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
     cout << "---------------------------\n";
-    cout << "Ctrl+C - 退出程序" << endl;
+    cout << "在任何能输入的时候输入e - 结束本次计算" << endl;
     cout << "---------------------------\n";
     cout << "x小王 d大王 0代表10\n";
+    cout << "三带一、三带二、四带二、四带两对、飞机这些牌型分主要牌和附带牌\n";
+    cout << "其他牌型（单张、对子、三张、炸弹、王炸、顺子、连对、没翅膀的飞机）不分主要牌和附带牌，请在提示输入主要牌时输入全部的牌\n";
     cout << "主要牌指三带一、三带二中的三，四带二、四带两对的四，飞机的机体\n";
     cout << "如3334中的333，44445566中的4444,33344456中的333444\n";
     cout << "---------------------------\n";
@@ -86,28 +93,40 @@ int main(int argc, char **argv) {
     cout << "请输入对方的牌:\n";
     cin >> strenemycards;
     enemys = str2cards(strenemycards);
-    cout << "我方的牌：";
-    ptcards(ours);
-    cout<<endl;
-    cout << "对方的牌：";
-    ptcards(enemys);
-    cout<<endl;
-    clock_t start, end;
-    status x;
     move tmp;
+    status x;
     x.currentPlayer = our;
     x.enemyCards = enemys;
     x.ourCards = ours;
     x.lastMove = tmp;
+    if (argc > 1) {
+        string t = argv[1];
+        if (t == "-enemyfirst") {
+            cout << "对手先出：\n";
+            cout << "请输入对方出的牌：\n";
+            tmp = getMove(x.enemyCards, tmp);
+            x.enemyCards.remove(tmp.mainCard);
+            x.enemyCards.remove(tmp.subCard);
+            x.lastMove = tmp;
+        }
+    }
+    cout << "我方的牌：";
+    ptcards(ours);
+    cout << endl;
+    cout << "对方的牌：";
+    ptcards(enemys);
+    cout << endl;
+    clock_t start, end;
+
     while (x.ourCards.cardNum() > 0 && x.enemyCards.cardNum() > 0) {
         cout << "---------------------------\n";
         cout << "开始计算\n";
         cout << "我方的牌：";
         ptcards(x.ourCards);
-        cout<<endl;
+        cout << endl;
         cout << "对方的牌：";
         ptcards(x.enemyCards);
-        cout<<endl;
+        cout << endl;
         start = clock();
         returned_result result = minMaxSearch(x);
         end = clock();
@@ -120,15 +139,15 @@ int main(int argc, char **argv) {
         ptmove(result.bestMove);
         x.ourCards.remove(result.bestMove.mainCard);
         x.ourCards.remove(result.bestMove.subCard);
-        if(x.ourCards.cardNum()==0){
-            cout<<"我方胜利\n";
+        if (x.ourCards.cardNum() == 0) {
+            cout << "我方胜利\n";
             exit(0);
         }
         cout << "请输入对方出的牌：\n";
         tmp = getMove(x.enemyCards, result.bestMove);
         x.enemyCards.remove(tmp.mainCard);
         x.enemyCards.remove(tmp.subCard);
-        x.lastMove=tmp;
+        x.lastMove = tmp;
     }
     return 0;
 }
