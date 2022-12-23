@@ -1,6 +1,9 @@
 #include "MoveGener.cpp"
 #include <string>
 #include <unordered_map>
+#include <thread>
+#include <vector>
+#include "easyMap.hpp"
 const int8 maxScore = 100;
 const int8 minScore = 0;
 const int8 our = 0;
@@ -15,23 +18,23 @@ string status2id(const status &x) {
     string id;
     char tmp[200] = {0};
     int k = 0;
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         for (int8 j = 0; j < x.ourCards.cardCount[i]; j++) {
             tmp[k] = i + 'A';
             k++;
         }
     }
-    tmp[k] = '|';
+    tmp[k] = 'A' + x.lastMove.type;
     k++;
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         for (int8 j = 0; j < x.enemyCards.cardCount[i]; j++) {
             tmp[k] = i + 'A';
             k++;
         }
     }
-    tmp[k] = '|';
+    tmp[k] = x.currentPlayer == our ? 'o' : 'e';
     k++;
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         for (int8 j = 0; j < x.lastMove.mainCard.cardCount[i]; j++) {
             tmp[k] = i + 'A';
             k++;
@@ -39,16 +42,13 @@ string status2id(const status &x) {
     }
     tmp[k] = '|';
     k++;
-    for (int8 i=0;i<N;i++) {
+    for (int8 i = 0; i < N; i++) {
         for (int8 j = 0; j < x.lastMove.subCard.cardCount[i]; j++) {
             tmp[k] = i + 'A';
             k++;
         }
     }
-    tmp[k] = 'A' + x.lastMove.type;
-    k++;
-    tmp[k] = x.currentPlayer == our ? 'o' : 'e';
-    k++;
+
     tmp[k] = 0;
     id = tmp;
     return id;
@@ -57,56 +57,81 @@ struct returned_result {
     int score;
     move bestMove;
 };
-std::unordered_map<string, returned_result> caldCache;
-returned_result minMaxSearch(const status &x) {
+
+struct task {
+    status first;
+    status second;
+};
+
+easyMAP<string, returned_result> caldCache;
+void buildMap(status x, returned_result &result) {
     string id = status2id(x);
-    auto pos = caldCache.find(id);
-    if (pos != caldCache.end()) return pos->second;
+    returned_result res2;
+    auto flag = caldCache.find(id, res2);
+    if (flag == true) {
+        result = res2;
+        return;
+    }
     move tmp;
     tmp.type = TYPE_0_PASS;
     returned_result minEmptyResult = {minScore, tmp};
     returned_result maxEmptyResult = {maxScore, tmp};
 
     if (x.currentPlayer == enemy && x.ourCards.cardNum() == 0) {
-        caldCache.insert(std::pair<string, returned_result>(id, maxEmptyResult));
-        return maxEmptyResult;
+        caldCache.insert(id, maxEmptyResult);
+        result = maxEmptyResult;
+        return;
     }
     if (x.currentPlayer == our && x.enemyCards.cardNum() == 0) {
-        caldCache.insert(std::pair<string, returned_result>(id, minEmptyResult));
-        return minEmptyResult;
+        caldCache.insert(id, minEmptyResult);
+        result = minEmptyResult;
+        return;
     }
 
-    if (x.currentPlayer == our) {
-        possibleMoveSet possibleMoves(x.ourCards, x.lastMove);
-        for (const auto &i : possibleMoves.moveSet) {
-            status y = x;
-            y.ourCards.remove(i.mainCard);
-            y.ourCards.remove(i.subCard);
+    possibleMoveSet possibleMoves(x.currentPlayer == our ? x.ourCards : x.enemyCards, x.lastMove);
+    for (auto i = possibleMoves.moveSet.rbegin(); i != possibleMoves.moveSet.rend(); i++) {
+        status y = x;
+        if (x.currentPlayer == our) {
+            y.ourCards.remove(i->mainCard);
+            y.ourCards.remove(i->subCard);
             y.currentPlayer = enemy;
-            y.lastMove = i;
-            returned_result result = minMaxSearch(y);
-            if (result.score == maxScore) {
-                caldCache.insert(std::pair<string, returned_result>(id, {maxScore, i}));
-                return {maxScore, i};
-            }
-        }
-        caldCache.insert(std::pair<string, returned_result>(id, minEmptyResult));
-        return minEmptyResult;
-    } else { // currentPlayer==enemy
-        possibleMoveSet possibleMoves(x.enemyCards, x.lastMove);
-        for (const auto &i : possibleMoves.moveSet) {
-            status y = x;
-            y.enemyCards.remove(i.mainCard);
-            y.enemyCards.remove(i.subCard);
+        } else {
+            y.enemyCards.remove(i->mainCard);
+            y.enemyCards.remove(i->subCard);
             y.currentPlayer = our;
-            y.lastMove = i;
-            returned_result result = minMaxSearch(y);
-            if (result.score == minScore) {
-                caldCache.insert(std::pair<string, returned_result>(id, {minScore, i}));
-                return {minScore, i};
+        }
+        y.lastMove = *i;
+
+        buildMap(y, res2);
+        if (x.currentPlayer == our) {
+            if (res2.score == maxScore) {
+                caldCache.insert(id, {maxScore, *i});
+                result = {maxScore, *i};
+                return;
+            }
+        } else {
+            if (res2.score == minScore) {
+                caldCache.insert(id, {minScore, *i});
+                result = {minScore, *i};
+                return;
             }
         }
-        caldCache.insert(std::pair<string, returned_result>(id, maxEmptyResult));
-        return maxEmptyResult;
     }
+    if (x.currentPlayer == our) {
+        caldCache.insert(id, minEmptyResult);
+        result = minEmptyResult;
+        return;
+    } else {
+        caldCache.insert(id, maxEmptyResult);
+        result = maxEmptyResult;
+        return;
+    }
+}
+
+returned_result minMaxSearch(const status &x) {
+    returned_result result;
+    if (caldCache.isEmpty()) buildMap(x, result);
+    string id = status2id(x);
+    caldCache.find(id, result);
+    return result;
 }
