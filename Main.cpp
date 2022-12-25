@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
     ptcards(enemys);
     cout << endl;
     clock_t start, end;
-
+    int l = 0;
     while (x.ourCards.cardNum() > 0 && x.enemyCards.cardNum() > 0) {
         cout << "---------------------------\n";
         cout << "开始计算\n";
@@ -146,7 +146,8 @@ int main(int argc, char *argv[]) {
         start = clock();
         returned_result result = minMaxSearch(x);
         end = clock();
-        cout << "计算用时：" << (double)(end - start) / CLOCKS_PER_SEC << "秒\n";
+        if (l == 0) cout << "计算用时：" << (double)(end - start) / CLOCKS_PER_SEC << "秒\n";
+        l++;
         if (result.score == minScore) {
             cout << "对方有必胜策略\n";
             exit(0);
