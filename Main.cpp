@@ -1,6 +1,8 @@
+#include <__type_traits/is_literal_type.h>
 #include <iostream>
 #include "MinMax.cpp"
 #include <ctime>
+#include <string>
 using std::cout;
 using std::cin;
 using std::endl;
@@ -83,8 +85,26 @@ int main(int argc, char *argv[]) {
     string strenemycards;
     cards ours;
     cards enemys;
-    cout << "请输入我方的牌:\n";
+    cout << "请输入我方的牌，输入s进入禁用特定牌型模式:\n";
     cin >> strourcards;
+    if (strourcards == "s") {
+        while (true) {
+            for (moveType i = TYPE_1_SINGLE; i <= TYPE_14_4_2_2; i++) {
+                cout << (int)i << MOVE_TYPES_STR[i] << (disables[i] ? "禁用" : "启用") << " ";
+            }
+            cout << endl;
+            cout << "请输入要禁用的牌型编号，操作完毕请输入s：\n";
+            string t;
+            cin >> t;
+            if (t == "s") break;
+            if (t == "e") exit(0);
+            int p = std::stoi(t);
+            if (p >= TYPE_1_SINGLE && p <= TYPE_14_4_2_2) disables[p] = true;
+            cout << endl;
+        }
+        cout << "请输入我方的牌:\n";
+        cin >> strourcards;
+    }
     ours = str2cards(strourcards);
     cout << "请输入对方的牌:\n";
     cin >> strenemycards;

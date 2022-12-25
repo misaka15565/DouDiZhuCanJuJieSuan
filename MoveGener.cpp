@@ -6,6 +6,8 @@
 using std::set;
 using std::vector;
 using std::sort;
+std::array<bool, 15> disables = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
+
 class possibleMoveSet {
 private:
     set<cardVal> singles;
@@ -82,6 +84,7 @@ void possibleMoveSet::genTYPE_0_PASS(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_1_SINGLE(const cards &x) {
+    if (disables[TYPE_1_SINGLE]) return;
     findSingles(x);
     for (const auto &i : singles) {
         move tmp;
@@ -92,6 +95,7 @@ void possibleMoveSet::genTYPE_1_SINGLE(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_2_PAIR(const cards &x) {
+    if (disables[TYPE_2_PAIR]) return;
     findPairs(x);
     for (const auto &i : pairs) {
         move tmp;
@@ -102,6 +106,7 @@ void possibleMoveSet::genTYPE_2_PAIR(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_3_TRIPLE(const cards &x) {
+    if (disables[TYPE_3_TRIPLE]) return;
     findTriples(x);
     for (const auto &i : triples) {
         move tmp;
@@ -112,6 +117,7 @@ void possibleMoveSet::genTYPE_3_TRIPLE(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_4_BOMB(const cards &x) {
+    if (disables[TYPE_4_BOMB]) return;
     findBombs(x);
     for (const auto &i : bombs) {
         move tmp;
@@ -122,6 +128,7 @@ void possibleMoveSet::genTYPE_4_BOMB(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_5_KING_BOMB(const cards &x) {
+    if (disables[TYPE_5_KING_BOMB]) return;
     if (x.cardCount[c2v['X']] >= 1
         && x.cardCount[c2v['D']] >= 1) {
         move tmp;
@@ -133,6 +140,7 @@ void possibleMoveSet::genTYPE_5_KING_BOMB(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_6_3_1(const cards &x) {
+    if (disables[TYPE_6_3_1]) return;
     findTriples(x);
     findSingles(x);
     for (const auto &i : triples) {
@@ -149,6 +157,7 @@ void possibleMoveSet::genTYPE_6_3_1(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_7_3_2(const cards &x) {
+    if (disables[TYPE_7_3_2]) return;
     findTriples(x);
     findPairs(x);
     for (const auto &i : triples) {
@@ -199,16 +208,19 @@ void possibleMoveSet::findSerial(const set<cardVal> &x,
 }
 
 void possibleMoveSet::genTYPE_8_SERIAL_SINGLE(const cards &x) {
+    if (disables[TYPE_8_SERIAL_SINGLE]) return;
     findSingles(x);
     findSerial(singles, TYPE_8_SERIAL_SINGLE, minSerialSingle);
 }
 
 void possibleMoveSet::genTYPE_9_SERIAL_PAIR(const cards &x) {
+    if (disables[TYPE_9_SERIAL_PAIR]) return;
     findPairs(x);
     findSerial(pairs, TYPE_9_SERIAL_PAIR, minSerialPair);
 }
 
 void possibleMoveSet::genTYPE_10_SERIAL_TRIPLE(const cards &x) {
+    if (disables[TYPE_10_SERIAL_TRIPLE]) return;
     findTriples(x);
     findSerial(triples, TYPE_10_SERIAL_TRIPLE, minSerialTriple);
 }
@@ -280,6 +292,7 @@ vector<cards> possibleMoveSet::genSubcards(
 }
 
 void possibleMoveSet::genTYPE_11_SERIAL_3_1(const cards &x) {
+    if (disables[TYPE_11_SERIAL_3_1]) return;
     findTriples(x);
     vector<cards> result = findSerialTriples();
     for (const auto &i : result) {
@@ -298,6 +311,7 @@ void possibleMoveSet::genTYPE_11_SERIAL_3_1(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_12_SERIAL_3_2(const cards &x) {
+    if (disables[TYPE_12_SERIAL_3_2]) return;
     findTriples(x);
     vector<cards> result = findSerialTriples();
     for (const auto &i : result) {
@@ -322,6 +336,7 @@ void possibleMoveSet::genTYPE_12_SERIAL_3_2(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_13_4_2(const cards &x) {
+    if (disables[TYPE_13_4_2]) return;
     findBombs(x);
     vector<cards> tmpZ;
     for (const auto &i : bombs) {
@@ -344,6 +359,7 @@ void possibleMoveSet::genTYPE_13_4_2(const cards &x) {
 }
 
 void possibleMoveSet::genTYPE_14_4_2_2(const cards &x) {
+    if (disables[TYPE_14_4_2_2]) return;
     findBombs(x);
     vector<cards> tmpZ;
     for (const auto &i : bombs) {
