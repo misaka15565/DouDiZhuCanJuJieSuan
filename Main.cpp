@@ -1,4 +1,3 @@
-#include <__type_traits/is_literal_type.h>
 #include <iostream>
 #include "MinMax.cpp"
 #include <ctime>
@@ -60,14 +59,14 @@ move getMove(const cards &x, move lastMove) {
             ptmove(plist[0]);
             return plist[0];
         } else {
-            for (int k = 0; k < plist.size(); k++) {
+            for (int k = 0; (unsigned long long)k < plist.size(); k++) {
                 cout << "编号：" << k << "  牌型：";
                 ptmove(plist[k]);
             }
             cout << "请输入对方所出的牌的对应编号：";
             int k;
             cin >> k;
-            if (k >= 0 && k < plist.size())
+            if (k >= 0 && (unsigned long long)k < plist.size())
                 return plist[k];
             else {
                 cout << "输入错误，请从头重新输入\n";

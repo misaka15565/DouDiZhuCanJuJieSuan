@@ -177,7 +177,7 @@ void possibleMoveSet::genSerial(const cardVal begin,
                                 const cardVal end,
                                 const moveType type,
                                 const int minLength) {
-    int8 size;
+    int8 size = 0;
     switch (type) {
     case TYPE_8_SERIAL_SINGLE: size = 1; break;
     case TYPE_9_SERIAL_PAIR: size = 2; break;
@@ -257,7 +257,7 @@ vector<cards> possibleMoveSet::findSerialTriples() const {
 void getAnyNinM(const vector<cardVal> &x,
                 vector<vector<cardVal>::const_iterator> tmp,
                 vector<cards> &result, int8 n) {
-    if (x.size() < n) return;
+    if (x.size() < (unsigned long long)n) return;
     vector<cardVal>::const_iterator b; // 指向第一个处理的元素
     for (b = (tmp.empty() ? x.begin() : *(tmp.end() - 1) + 1);
          b < x.end() - n + 1; b++) {
