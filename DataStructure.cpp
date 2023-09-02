@@ -92,7 +92,10 @@ bool operator==(const cards &a, const cards &b) {
 }
 bool operator<(const cards &a, const cards &b) {
     for (int8 i = 0; i < N; i++) {
-        if (a.cardCount[i] < b.cardCount[i]) return true;
+        if (a.cardCount[i] < b.cardCount[i])
+            return true;
+        else if (a.cardCount[i] > b.cardCount[i])
+            return false;
     }
     return false;
 }
