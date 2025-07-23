@@ -44,8 +44,8 @@ inline vector<cards> genSerial(const cards &hand, const int8 num, const int8 min
             last_pos = i;
         }
         if (i - last_pos + 1 >= minlen) {
-            for (int j = i; j >= last_pos + minlen; --j) {
-                result.push_back(makeNewSerial(last_pos, j, num));
+            for (int j = last_pos; j <= i - minlen + 1; ++j) {
+                result.push_back(makeNewSerial(j, i, num));
             }
         }
     }
@@ -149,13 +149,15 @@ inline vector<cardMove> genFourTwoTwo(const cards &hand) {
 // 在剩余牌中选择n张牌，返回所有可能结果
 inline vector<cards> selectNfromRemaining(const cards &remaining, const int8 n) {
     vector<cards> result;
-    if (n < 1 || n > remaining.cardNum()) {
+    if (n < 1) {
         throw std::invalid_argument("Invalid number of cards to select");
     }
     if (n == 0) {
         result.push_back(cards()); // 返回空牌
         return result;
     }
+    if (n > remaining.cardNum())
+        return result; // 没有足够的牌
     std::function<void(const cards &, cards, int8, int8)> func;
     func = [&result, n, &func](const cards &current, cards remaining, int8 start, int8 count) {
         if (count == n) {
@@ -232,6 +234,7 @@ inline vector<cardMove> genAllMoves(const cards &hand, const cardMove &lastMove)
     }
 
     switch (lastMove.type) {
+    case MoveType::INVALID: // 如果上一个是无效，说明是敌方先出模式，什么都可以出包括过
     case MoveType::PASS:
         // 如果上一个动作是过牌，则不能出过，但可以出其他所有
         addCards2res(genSingle(hand), MoveType::SINGLE);

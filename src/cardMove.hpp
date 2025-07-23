@@ -7,6 +7,7 @@
 struct cardMove {
     using int8 = int8_t;
     enum class MoveType : int8_t {
+        INVALID = -1, // 无效
         PASS = 0,
         SINGLE = 1,
         PAIR = 2,
@@ -47,8 +48,8 @@ struct cardMove {
     //  返回值：INVALID表示无效，EQUAL表示相等，LESS表示this < b，GREATER表示this > b
     inline moveCompareResult compare(const cardMove &b) const {
         if (type == MoveType::PASS && b.type == MoveType::PASS) return moveCompareResult::EQUAL;
-        if (type == MoveType::PASS) return moveCompareResult::LESS;
-        if (b.type == MoveType::PASS) return moveCompareResult::GREATER;
+        if (type == MoveType::PASS || type == MoveType::INVALID) return moveCompareResult::LESS;
+        if (b.type == MoveType::PASS || b.type == MoveType::INVALID) return moveCompareResult::GREATER;
 
         if (type != b.type) {
             if (type == MoveType::KING_BOMB) return moveCompareResult::GREATER;
@@ -95,21 +96,26 @@ struct cardMove {
     inline cardMove(cards main, cards attach, MoveType t) :
         maincards(main), attachcards(attach), type(t) {
     }
-    inline cardMove(MoveType t):maincards(),attachcards(), type(t) {
-        if(t!=MoveType::PASS) {
+    inline cardMove(MoveType t) :
+        maincards(), attachcards(), type(t) {
+        if (t != MoveType::PASS && t != MoveType::INVALID) {
             throw std::invalid_argument("Cannot create a cardMove which is not PASS type without cards");
         }
     }
+    inline cardMove() :
+        maincards(), attachcards(), type(MoveType::PASS) {
+    }
     inline cardMove(cards main, MoveType t) :
         maincards(main), attachcards(), type(t) {
-        if (t != MoveType::SINGLE && t != MoveType::PAIR && t != MoveType::TRIPLE &&
-            t != MoveType::BOMB && t != MoveType::KING_BOMB && t!=MoveType::SERIAL_SINGLE &&
-            t!=MoveType::SERIAL_PAIR && t!=MoveType::SERIAL_TRIPLE) {
+        if (t != MoveType::SINGLE && t != MoveType::PAIR && t != MoveType::TRIPLE && t != MoveType::BOMB && t != MoveType::KING_BOMB && t != MoveType::SERIAL_SINGLE && t != MoveType::SERIAL_PAIR && t != MoveType::SERIAL_TRIPLE) {
             throw std::invalid_argument("Cannot create a cardMove with only main cards for this type");
         }
     }
+    inline bool operator==(const cardMove &b) const {
+        return maincards == b.maincards && attachcards == b.attachcards && type == b.type;
+    }
 };
-template<>
+template <>
 struct std::hash<cardMove> {
     inline std::size_t operator()(const cardMove &m) const noexcept {
         return std::hash<std::string_view>()(
@@ -117,12 +123,12 @@ struct std::hash<cardMove> {
     }
 };
 
-
 template <>
 struct std::formatter<cardMove> {
     using MoveType = cardMove::MoveType;
     inline static const map<MoveType, string>
-        MOVE_TYPES_STR{{MoveType::PASS, "过"},
+        MOVE_TYPES_STR{{MoveType::INVALID, "无效"},
+                       {MoveType::PASS, "过"},
                        {MoveType::SINGLE, "单张"},
                        {MoveType::PAIR, "对子"},
                        {MoveType::TRIPLE, "三张"},
