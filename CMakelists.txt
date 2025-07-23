@@ -8,6 +8,7 @@ include_directories(src)
 
 file(GLOB SOURCES "src/*.cpp")
 
-add_link_options(-static)
+# 设置静态链接
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 
 add_executable(DouDiZhuCanJuJieSuan ${SOURCES})
