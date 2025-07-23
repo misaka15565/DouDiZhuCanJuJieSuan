@@ -2,3 +2,5 @@
 *.exe
 release
 build
+.cache
+.cache/*

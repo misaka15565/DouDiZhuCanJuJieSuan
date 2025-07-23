@@ -4,11 +4,8 @@
 #include <format>
 #include "cards.hpp"
 
-using std::map;
-using std::string;
-
-class cardMove {
-public:
+struct cardMove {
+    using int8 = int8_t;
     enum class MoveType : int8_t {
         PASS = 0,
         SINGLE = 1,
@@ -94,6 +91,9 @@ public:
             throw std::runtime_error("Should not reach here, invalid move type");
             return moveCompareResult::INVALID;
         }
+    }
+    inline cardMove(cards main, cards attach, MoveType t) :
+        maincards(main), attachcards(attach), type(t) {
     }
 };
 
