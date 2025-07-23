@@ -95,7 +95,28 @@ struct cardMove {
     inline cardMove(cards main, cards attach, MoveType t) :
         maincards(main), attachcards(attach), type(t) {
     }
+    inline cardMove(MoveType t):maincards(),attachcards(), type(t) {
+        if(t!=MoveType::PASS) {
+            throw std::invalid_argument("Cannot create a cardMove which is not PASS type without cards");
+        }
+    }
+    inline cardMove(cards main, MoveType t) :
+        maincards(main), attachcards(), type(t) {
+        if (t != MoveType::SINGLE && t != MoveType::PAIR && t != MoveType::TRIPLE &&
+            t != MoveType::BOMB && t != MoveType::KING_BOMB && t!=MoveType::SERIAL_SINGLE &&
+            t!=MoveType::SERIAL_PAIR && t!=MoveType::SERIAL_TRIPLE) {
+            throw std::invalid_argument("Cannot create a cardMove with only main cards for this type");
+        }
+    }
 };
+template<>
+struct std::hash<cardMove> {
+    inline std::size_t operator()(const cardMove &m) const noexcept {
+        return std::hash<std::string_view>()(
+            std::string_view(reinterpret_cast<const char *>(&m), sizeof(m)));
+    }
+};
+
 
 template <>
 struct std::formatter<cardMove> {

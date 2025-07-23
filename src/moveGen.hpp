@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <print>
 #include <vector>
 #include <algorithm>
 #include "cardMove.hpp"
@@ -70,6 +69,20 @@ inline vector<cards> genBomb(const cards &hand) {
     return gen1234(hand, 4);
 }
 
+// 王炸
+inline vector<cards> genKingBomb(const cards &hand) {
+    vector<cards> result;
+    const int8 smallKingVal = 16; // cards::c2v.at('x');
+    const int8 bigKingVal = 18;   // cards::c2v.at('d');
+    if (hand.cardCount[smallKingVal] > 0 && hand.cardCount[bigKingVal] > 0) {
+        cards c;
+        c.cardCount[smallKingVal] = 1; // 小王
+        c.cardCount[bigKingVal] = 1;   // 大王
+        result.push_back(c);
+    }
+    return result;
+}
+
 // 顺子、连对、连续三张生成
 inline vector<cards> genSerialSingle(const cards &hand) {
     return genSerial(hand, 1, cardMove::minSerialSingle);
@@ -132,23 +145,161 @@ inline vector<cardMove> genFourTwo(const cards &hand) {
 inline vector<cardMove> genFourTwoTwo(const cards &hand) {
     return genAwithB(hand, MoveType::FOUR_TWO_TWO);
 }
-//飞机
-inline vector<cardMove> genSerialThreeX(const cards &hand,const int8 bNum) {
+
+// 在剩余牌中选择n张牌，返回所有可能结果
+inline vector<cards> selectNfromRemaining(const cards &remaining, const int8 n) {
+    vector<cards> result;
+    if (n < 1 || n > remaining.cardNum()) {
+        throw std::invalid_argument("Invalid number of cards to select");
+    }
+    if (n == 0) {
+        result.push_back(cards()); // 返回空牌
+        return result;
+    }
+    std::function<void(const cards &, cards, int8, int8)> func;
+    func = [&result, n, &func](const cards &current, cards remaining, int8 start, int8 count) {
+        if (count == n) {
+            result.push_back(current);
+            return;
+        }
+        for (int i = start; i < cards::N; ++i) {
+            if (remaining.cardCount[i] > 0) {
+                cards next = current;
+                next.cardCount[i]++;
+                cards newremain = remaining;
+                newremain.cardCount[i]--;
+                func(next, newremain, i, count + 1);
+            }
+        }
+    };
+    func(cards(), remaining, 0, 0);
+    return result;
+}
+
+// 飞机
+inline vector<cardMove> genSerialThreeX(const cards &hand, const int8 bNum) {
     vector<cardMove> res;
     auto serialTriple = genSerialTriple(hand);
     for (const auto &triple : serialTriple) {
         auto remainingCard = hand - triple; // 剩余的牌
         const int8 gNum = triple.cardNum() / 3;
-        if(remainingCard.cardNum() < gNum * bNum) continue; // 没有足够的牌组成飞机
-        
+        if (remainingCard.cardNum() < gNum * bNum) continue; // 没有足够的牌组成飞机
+
+        for (auto &i : remainingCard.cardCount) {
+            i /= bNum;
+        }
+
+        auto attachCardsList = selectNfromRemaining(remainingCard, gNum);
+        for (auto &attachCards : attachCardsList) {
+            for (auto &i : attachCards.cardCount) {
+                i *= bNum;
+            }
+            res.push_back(cardMove(triple, attachCards, bNum == 1 ? MoveType::SERIAL_THREE_ONE : MoveType::SERIAL_THREE_TWO));
+        }
     }
     return res;
 }
-
-
-
-inline vector<cardMove> genAllMoves(const cards &hand, const cards &lastMove) {
+inline vector<cardMove> genSerialThreeOne(const cards &hand) {
+    return genSerialThreeX(hand, 1);
+}
+inline vector<cardMove> genSerialThreeTwo(const cards &hand) {
+    return genSerialThreeX(hand, 2);
+}
+inline vector<cardMove> makeCardMovefromCards(const vector<cards> &v_cards, const MoveType type) {
     vector<cardMove> moves;
+    for (const auto &hand : v_cards) {
+        moves.push_back(cardMove(hand, cards(), type));
+    }
     return moves;
+}
+
+inline vector<cardMove> genAllMoves(const cards &hand, const cardMove &lastMove) {
+    vector<cardMove> result;
+
+    const auto addMove2res = [&result](const vector<cardMove> &moves) {
+        result.insert(result.end(), moves.begin(), moves.end());
+    };
+    const auto addCards2res = [&result](const vector<cards> &cardsList, MoveType type) {
+        auto moves = makeCardMovefromCards(cardsList, type);
+        result.insert(result.end(), moves.begin(), moves.end());
+    };
+
+    // 无论上一个是什么牌，都可以出王炸
+    addCards2res(genKingBomb(hand), MoveType::KING_BOMB);
+    // 如果上一个不是王炸，则可以出炸弹
+    if (lastMove.type != MoveType::KING_BOMB) {
+        addCards2res(genBomb(hand), MoveType::BOMB);
+    }
+
+    switch (lastMove.type) {
+    case MoveType::PASS:
+        // 如果上一个动作是过牌，则不能出过，但可以出其他所有
+        addCards2res(genSingle(hand), MoveType::SINGLE);
+        addCards2res(genPair(hand), MoveType::PAIR);
+        addCards2res(genTriple(hand), MoveType::TRIPLE);
+        addCards2res(genSerialSingle(hand), MoveType::SERIAL_SINGLE);
+        addCards2res(genSerialPair(hand), MoveType::SERIAL_PAIR);
+        addCards2res(genSerialTriple(hand), MoveType::SERIAL_TRIPLE);
+
+        addMove2res(genThreeOne(hand));
+        addMove2res(genThreeTwo(hand));
+        addMove2res(genFourTwo(hand));
+        addMove2res(genFourTwoTwo(hand));
+        addMove2res(genSerialThreeOne(hand)); // 飞机带单
+        addMove2res(genSerialThreeTwo(hand)); // 飞机带对
+        break;
+    case MoveType::SINGLE:
+        addCards2res(genSingle(hand), MoveType::SINGLE);
+        break;
+    case MoveType::PAIR:
+        addCards2res(genPair(hand), MoveType::PAIR);
+        break;
+    case MoveType::TRIPLE:
+        addCards2res(genTriple(hand), MoveType::TRIPLE);
+        break;
+    case MoveType::SERIAL_SINGLE:
+        addCards2res(genSerialSingle(hand), MoveType::SERIAL_SINGLE);
+        break;
+    case MoveType::SERIAL_PAIR:
+        addCards2res(genSerialPair(hand), MoveType::SERIAL_PAIR);
+        break;
+    case MoveType::SERIAL_TRIPLE:
+        addCards2res(genSerialTriple(hand), MoveType::SERIAL_TRIPLE);
+        break;
+    case MoveType::THREE_ONE:
+        addMove2res(genThreeOne(hand));
+        break;
+    case MoveType::THREE_TWO:
+        addMove2res(genThreeTwo(hand));
+        break;
+    case MoveType::FOUR_TWO:
+        addMove2res(genFourTwo(hand));
+        break;
+    case MoveType::FOUR_TWO_TWO:
+        addMove2res(genFourTwoTwo(hand));
+        break;
+    case MoveType::SERIAL_THREE_ONE:
+        addMove2res(genSerialThreeOne(hand));
+        break;
+    case MoveType::SERIAL_THREE_TWO:
+        addMove2res(genSerialThreeTwo(hand));
+        break;
+    case MoveType::BOMB:
+    case MoveType::KING_BOMB:
+    default:
+        break;
+    }
+    // 过滤掉比lastMove小的牌
+    result.erase(remove_if(result.begin(), result.end(),
+                           [&lastMove](const cardMove &move) {
+                               return move.compare(lastMove) != cardMove::moveCompareResult::GREATER;
+                           }),
+                 result.end());
+    // 如果lastmove不为pass，则可以出过
+    if (lastMove.type != MoveType::PASS) {
+        result.push_back(cardMove(cards(), cards(), MoveType::PASS));
+    }
+
+    return result;
 }
 } // namespace moveGen

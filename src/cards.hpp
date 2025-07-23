@@ -1,5 +1,6 @@
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 #include <format>
@@ -107,6 +108,13 @@ struct cards {
             res.cardCount[i] = cardCount[i] + b.cardCount[i];
         }
         return res;
+    }
+};
+template <>
+struct std::hash<cards> {
+    inline std::size_t operator()(const cards &c) const noexcept {
+        return std::hash<std::string_view>()(
+            std::string_view(reinterpret_cast<const char *>(c.cardCount.data()), sizeof(c.cardCount)));
     }
 };
 
