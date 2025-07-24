@@ -302,7 +302,8 @@ inline vector<cardMove> genAllMoves(const cards &hand, const cardMove &lastMove)
     if (lastMove.type != MoveType::PASS) {
         result.push_back(cardMove(cards(), cards(), MoveType::PASS));
     }
-
+    //倒置
+    std::reverse(result.begin(), result.end());
     return result;
 }
 } // namespace moveGen

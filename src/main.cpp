@@ -81,7 +81,10 @@ int main(int argc, char **argv, char **envp) {
             bestAction action = calculateBestAction(game.getCurrentStatus());
             auto end = chrono::high_resolution_clock::now();
             chrono::duration<double, milli> duration = end - start;
-            if (duration.count() > 1) println("计算最佳出牌耗时：{} ms", duration.count());
+            if (duration.count() > 1) {
+                println("计算最佳出牌耗时：{} ms", duration.count());
+                println("计算局面数：{}", actionCache.size());
+            }
 
             if (action.score == min_score) {
                 println("对方有必胜策略");
