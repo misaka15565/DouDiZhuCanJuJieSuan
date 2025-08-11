@@ -56,6 +56,23 @@ cardMove getCardMove(cards hand, cardMove lastMove) {
 }
 
 int main(int argc, char **argv, char **envp) {
+    if(argc>1 && argv[1][0]=='b'){
+        //benchmark
+        auto start = chrono::high_resolution_clock::now();
+        for(int i=0;i<50;i++){
+            actionCache.clear(); // 清除缓存
+            cards ourcard{"3335688jqk22"};
+            cards enemycard{"44556700kaaa"};
+            gameCore game{ourcard, enemycard};
+            calculateBestAction(game.getCurrentStatus());
+        }
+        auto end = chrono::high_resolution_clock::now();
+        chrono::duration<double, milli> duration = end - start;
+        println("基准测试耗时：{} ms", duration.count());
+        exit(0);
+    }
+
+
     try {
         println("欢迎使用斗地主残局计算器！");
         println("请使用0代表10，x代表小王，d代表大王输入手牌：\n-------------------------------------------");

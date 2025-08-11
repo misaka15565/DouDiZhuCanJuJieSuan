@@ -16,23 +16,45 @@ struct gameStatus {
     inline bool operator==(const gameStatus &other) const {
         return std::tie(curHand, lastMove) == std::tie(other.curHand, other.lastMove);
     }
-    cards getCurPlayerHand() const {
+    inline cards getCurPlayerHand() const {
         cards res;
         for (int i = 0; i < sizeof(res.cardCount) / sizeof(res.cardCount[0]); ++i) {
             res.cardCount[i] = (curHand[i] & 0x0F); // 低4位为我方的牌
         }
         return res;
     }
-
-    cards getCurEnemyHand() const {
+    inline int8_t getCurPlayerCardNum() const {
+        int8_t num = 0;
+        for (int i = 0; i < sizeof(curHand) / sizeof(curHand[0]); ++i) {
+            num += (curHand[i] & 0x0F);
+        }
+        return num;
+    }
+    inline cards getCurEnemyHand() const {
         cards res;
         for (int i = 0; i < sizeof(res.cardCount) / sizeof(res.cardCount[0]); ++i) {
             res.cardCount[i] = (curHand[i] >> 4) & 0x0F; // 高4位为敌方的牌
         }
         return res;
     }
+    inline int8_t getCurEnemyCardNum() const {
+        int8_t num = 0;
+        for (int i = 0; i < sizeof(curHand) / sizeof(curHand[0]); ++i) {
+            num += (curHand[i] >> 4) & 0x0F;
+        }
+        return num;
+    }
 
-    gameStatus(cards ourHand, cards enemyHand, cardMove lastMove) :
+    // 判断当前是否有玩家已经出完牌
+    inline bool existZeroCardPlayer() const {
+        uint8_t tmp = 0;
+        for (int i = 0; i < sizeof(curHand) / sizeof(curHand[0]); ++i) {
+            tmp |= curHand[i];
+        }
+        return (tmp & 0x0F) == 0 || (tmp & 0xF0) == 0;
+    }
+
+    inline gameStatus(cards ourHand, cards enemyHand, cardMove lastMove) :
         curHand(), lastMove(lastMove) {
         for (int i = 0; i < sizeof(curHand) / sizeof(curHand[0]); ++i) {
             curHand[i] = (ourHand.cardCount[i] & 0x0F) | ((enemyHand.cardCount[i] & 0x0F) << 4);
@@ -134,7 +156,7 @@ inline bestAction calculateBestAction(const gameStatus &status) {
         return it->second; // 如果找到，直接返回缓存的结果
     }
     // 检查当前是否有玩家已经出完
-    if (status.getCurPlayerHand().cardNum() == 0 || status.getCurEnemyHand().cardNum() == 0) {
+    if (status.existZeroCardPlayer()) {
         throw std::runtime_error("Game over, one player has no cards left, and should not reach here");
     }
 
@@ -143,10 +165,10 @@ inline bestAction calculateBestAction(const gameStatus &status) {
     if (movelist.empty()) {
         throw std::runtime_error("No valid moves available, should not reach here");
     }
-
+    const int8_t curPlayerCardNum = status.getCurPlayerCardNum();
     for (const auto &move : movelist) {
         // 检查是否出完这个move就获胜了
-        if (status.getCurPlayerHand().cardNum() == move.getAllCards().cardNum()) {
+        if (curPlayerCardNum == move.getAllCards().cardNum()) {
             // 如果出完了，直接返回这个动作
             actionCache[status] = {move, max_score};
             return actionCache[status];

@@ -4,10 +4,12 @@
 #include <map>
 #include <string>
 #include <format>
-
+#define DDZ_SPECIAL
 struct cards {
     using int8 = int8_t;
     using cardVal = int8_t;
+// 你知道吗，如果是一副牌的斗地主，完全不需要让2 小王 大王的值隔开，因为小王大王只有一张的说，不会组成2xd的连对的说
+#ifndef DDZ_SPECIAL
     static constexpr int8 N = 18; // Number of card values, including 3-9, 10, J, Q, K, A, 2, X (small king), D (big king)
     inline static const std::map<char, cardVal> c2v = {
         {'3', 0},
@@ -47,6 +49,49 @@ struct cards {
         {13, "2"},
         {15, "小王"},
         {17, "大王"}};
+#else
+    static constexpr int8 N = 16; // Number of card values, including 3-9, 10, J, Q, K, A, 2, X (small king), D (big king)
+    inline static const std::map<char, cardVal> c2v = {
+        {'3', 0},
+        {'4', 1},
+        {'5', 2},
+        {'6', 3},
+        {'7', 4},
+        {'8', 5},
+        {'9', 6},
+        {'0', 7}, // 用0代表10
+        {'J', 8},
+        {'j', 8},
+        {'Q', 9},
+        {'q', 9},
+        {'K', 10},
+        {'k', 10},
+        {'A', 11},
+        {'a', 11},
+        {'t', 12},//t代表这个牌不存在，这个位置给cardmove存出牌种类
+        {'2', 13},
+        {'X', 14},
+        {'x', 14},
+        {'D', 15},
+        {'d', 15}};
+    inline static const std::map<cardVal, std::string> v2s = {
+        {0, "3"},
+        {1, "4"},
+        {2, "5"},
+        {3, "6"},
+        {4, "7"},
+        {5, "8"},
+        {6, "9"},
+        {7, "10"},
+        {8, "J"},
+        {9, "Q"},
+        {10, "K"},
+        {11, "A"},
+        {13, "2"},
+        {14, "小王"},
+        {15, "大王"}};
+#endif
+
     // cardCount[i] = j means there are j cards of value i
     std::array<uint8_t, N> cardCount;
     inline cards(std::string s) :

@@ -72,8 +72,8 @@ inline vector<cards> genBomb(const cards &hand) {
 // 王炸
 inline vector<cards> genKingBomb(const cards &hand) {
     vector<cards> result;
-    const int8 smallKingVal = 16; // cards::c2v.at('x');
-    const int8 bigKingVal = 18;   // cards::c2v.at('d');
+    static const int8 smallKingVal = cards::c2v.at('x');
+    static const int8 bigKingVal = cards::c2v.at('d');
     if (hand.cardCount[smallKingVal] > 0 && hand.cardCount[bigKingVal] > 0) {
         cards c;
         c.cardCount[smallKingVal] = 1; // 小王
@@ -229,11 +229,11 @@ inline vector<cardMove> genAllMoves(const cards &hand, const cardMove &lastMove)
     // 无论上一个是什么牌，都可以出王炸
     addCards2res(genKingBomb(hand), MoveType::KING_BOMB);
     // 如果上一个不是王炸，则可以出炸弹
-    if (lastMove.type != MoveType::KING_BOMB) {
+    if (lastMove.getType() != MoveType::KING_BOMB) {
         addCards2res(genBomb(hand), MoveType::BOMB);
     }
 
-    switch (lastMove.type) {
+    switch (lastMove.getType()) {
     case MoveType::INVALID: // 如果上一个是无效，说明是敌方先出模式，什么都可以出包括过
     case MoveType::PASS:
         // 如果上一个动作是过牌，则不能出过，但可以出其他所有
@@ -299,10 +299,10 @@ inline vector<cardMove> genAllMoves(const cards &hand, const cardMove &lastMove)
                            }),
                  result.end());
     // 如果lastmove不为pass，则可以出过
-    if (lastMove.type != MoveType::PASS) {
+    if (lastMove.getType() != MoveType::PASS) {
         result.push_back(cardMove(cards(), cards(), MoveType::PASS));
     }
-    //倒置
+    // 倒置
     std::reverse(result.begin(), result.end());
     return result;
 }
