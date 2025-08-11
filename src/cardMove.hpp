@@ -67,8 +67,17 @@ struct cardMove {
 
     inline cards getAllCards() const {
         cards all;
-        for (int8 i = 0; i < cards::N; i++) {
-            all.cardCount[i] = (attach_main[i] & 0x0F) | ((attach_main[i] & 0xF0) >> 4);
+        if constexpr (cards::N == 16) {
+            uint64_t *allCards = reinterpret_cast<uint64_t *>(all.cardCount.data());
+            constexpr uint64_t mask = 0x0f0f0f0f0f0f0f0f;
+            allCards[0] = (reinterpret_cast<const uint64_t *>(attach_main.data())[0] & mask)
+                          + ((reinterpret_cast<const uint64_t *>(attach_main.data())[0] & ~mask) >> 4);
+            allCards[1] = (reinterpret_cast<const uint64_t *>(attach_main.data())[1] & mask)
+                          + ((reinterpret_cast<const uint64_t *>(attach_main.data())[1] & ~mask) >> 4);
+        } else {
+            for (int8 i = 0; i < cards::N; i++) {
+                all.cardCount[i] = (attach_main[i] & 0x0F) | ((attach_main[i] & 0xF0) >> 4);
+            }
         }
         all.cardCount[moveTypeOffset] = 0; // 清除类型位
         return all;

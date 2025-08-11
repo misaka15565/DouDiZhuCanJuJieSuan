@@ -11,10 +11,18 @@ constexpr int8_t max_score = 99;
 constexpr int8_t min_score = -99;
 // 可以永远只为一方计算，只要swap两方的牌
 struct gameStatus {
+    static constexpr uint64_t curPlayerMask = 0x0f0f0f0f0f0f0f0f;
+    static constexpr uint64_t curEnemyMask = ~curPlayerMask;
     decltype(cards::cardCount) curHand; // 每个字节的低4位存我方的牌，高四位存敌方的牌
     cardMove lastMove;
     inline bool operator==(const gameStatus &other) const {
-        return std::tie(curHand, lastMove) == std::tie(other.curHand, other.lastMove);
+        if constexpr (sizeof(*this) == 32) {
+            const uint64_t *thatdata = reinterpret_cast<const uint64_t *>(&other);
+            const uint64_t *thisdata = reinterpret_cast<const uint64_t *>(this);
+            return thisdata[3] == thatdata[3] && thisdata[2] == thatdata[2]
+                   && thisdata[1] == thatdata[1] && thisdata[0] == thatdata[0];
+        } else
+            return curHand == other.curHand && lastMove == other.lastMove;
     }
     inline cards getCurPlayerHand() const {
         cards res;
@@ -168,7 +176,7 @@ inline bestAction calculateBestAction(const gameStatus &status) {
     const int8_t curPlayerCardNum = status.getCurPlayerCardNum();
     for (const auto &move : movelist) {
         // 检查是否出完这个move就获胜了
-        if (curPlayerCardNum == move.getAllCards().cardNum()) {
+        if (curPlayerCardNum == move.getAllCardNum()) {
             // 如果出完了，直接返回这个动作
             actionCache[status] = {move, max_score};
             return actionCache[status];
