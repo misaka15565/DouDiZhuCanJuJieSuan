@@ -8,47 +8,47 @@
 struct cards {
     using int8 = int8_t;
     using cardVal = int8_t;
-    static constexpr int8 N = 20; // Number of card values, including 3-9, 10, J, Q, K, A, 2, X (small king), D (big king)
+    static constexpr int8 N = 18; // Number of card values, including 3-9, 10, J, Q, K, A, 2, X (small king), D (big king)
     inline static const std::map<char, cardVal> c2v = {
-        {'3', 1},
-        {'4', 2},
-        {'5', 3},
-        {'6', 4},
-        {'7', 5},
-        {'8', 6},
-        {'9', 7},
-        {'0', 8}, // 用0代表10
-        {'J', 9},
-        {'j', 9},
-        {'Q', 10},
-        {'q', 10},
-        {'K', 11},
-        {'k', 11},
-        {'A', 12},
-        {'a', 12},
-        {'2', 14},
-        {'X', 16},
-        {'x', 16},
-        {'D', 18},
-        {'d', 18}};
+        {'3', 0},
+        {'4', 1},
+        {'5', 2},
+        {'6', 3},
+        {'7', 4},
+        {'8', 5},
+        {'9', 6},
+        {'0', 7}, // 用0代表10
+        {'J', 8},
+        {'j', 8},
+        {'Q', 9},
+        {'q', 9},
+        {'K', 10},
+        {'k', 10},
+        {'A', 11},
+        {'a', 11},
+        {'2', 13},
+        {'X', 15},
+        {'x', 15},
+        {'D', 17},
+        {'d', 17}};
     inline static const std::map<cardVal, std::string> v2s = {
-        {1, "3"},
-        {2, "4"},
-        {3, "5"},
-        {4, "6"},
-        {5, "7"},
-        {6, "8"},
-        {7, "9"},
-        {8, "10"},
-        {9, "J"},
-        {10, "Q"},
-        {11, "K"},
-        {12, "A"},
-        {14, "2"},
-        {16, "小王"},
-        {18, "大王"}};
+        {0, "3"},
+        {1, "4"},
+        {2, "5"},
+        {3, "6"},
+        {4, "7"},
+        {5, "8"},
+        {6, "9"},
+        {7, "10"},
+        {8, "J"},
+        {9, "Q"},
+        {10, "K"},
+        {11, "A"},
+        {13, "2"},
+        {15, "小王"},
+        {17, "大王"}};
     // cardCount[i] = j means there are j cards of value i
-    std::array<int8, N> cardCount;
+    std::array<uint8_t, N> cardCount;
     inline cards(std::string s) :
         cardCount{} {
         for (char c : s) {

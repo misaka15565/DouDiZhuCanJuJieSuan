@@ -11,11 +11,32 @@ constexpr int8_t max_score = 99;
 constexpr int8_t min_score = -99;
 // 可以永远只为一方计算，只要swap两方的牌
 struct gameStatus {
-    cards curPlayerHand;
-    cards curEnemyHand;
+    decltype(cards::cardCount) curHand; // 每个字节的低4位存我方的牌，高四位存敌方的牌
     cardMove lastMove;
     inline bool operator==(const gameStatus &other) const {
-        return std::tie(curPlayerHand, curEnemyHand, lastMove) == std::tie(other.curPlayerHand, other.curEnemyHand, other.lastMove);
+        return std::tie(curHand, lastMove) == std::tie(other.curHand, other.lastMove);
+    }
+    cards getCurPlayerHand() const {
+        cards res;
+        for (int i = 0; i < sizeof(res.cardCount) / sizeof(res.cardCount[0]); ++i) {
+            res.cardCount[i] = (curHand[i] & 0x0F); // 低4位为我方的牌
+        }
+        return res;
+    }
+
+    cards getCurEnemyHand() const {
+        cards res;
+        for (int i = 0; i < sizeof(res.cardCount) / sizeof(res.cardCount[0]); ++i) {
+            res.cardCount[i] = (curHand[i] >> 4) & 0x0F; // 高4位为敌方的牌
+        }
+        return res;
+    }
+
+    gameStatus(cards ourHand, cards enemyHand, cardMove lastMove) :
+        curHand(), lastMove(lastMove) {
+        for (int i = 0; i < sizeof(curHand) / sizeof(curHand[0]); ++i) {
+            curHand[i] = (ourHand.cardCount[i] & 0x0F) | ((enemyHand.cardCount[i] & 0x0F) << 4);
+        }
     }
 };
 template <>
@@ -113,28 +134,28 @@ inline bestAction calculateBestAction(const gameStatus &status) {
         return it->second; // 如果找到，直接返回缓存的结果
     }
     // 检查当前是否有玩家已经出完
-    if (status.curPlayerHand.cardNum() == 0 || status.curEnemyHand.cardNum() == 0) {
+    if (status.getCurPlayerHand().cardNum() == 0 || status.getCurEnemyHand().cardNum() == 0) {
         throw std::runtime_error("Game over, one player has no cards left, and should not reach here");
     }
 
     // 列出curplayer方所有可能的出牌
-    auto movelist = moveGen::genAllMoves(status.curPlayerHand, status.lastMove);
+    auto movelist = moveGen::genAllMoves(status.getCurPlayerHand(), status.lastMove);
     if (movelist.empty()) {
         throw std::runtime_error("No valid moves available, should not reach here");
     }
 
     for (const auto &move : movelist) {
         // 检查是否出完这个move就获胜了
-        if (status.curPlayerHand.cardNum() == move.getAllCards().cardNum()) {
+        if (status.getCurPlayerHand().cardNum() == move.getAllCards().cardNum()) {
             // 如果出完了，直接返回这个动作
             actionCache[status] = {move, max_score};
             return actionCache[status];
         }
         // 计算新状态
-        gameStatus newStatus = status;
-        newStatus.curPlayerHand.remove(move.getAllCards());
-        newStatus.lastMove = move;
-        std::swap(newStatus.curPlayerHand, newStatus.curEnemyHand); // 换玩家
+        auto tmp = status.getCurPlayerHand();
+        tmp.remove(move.getAllCards());
+        gameStatus newStatus{status.getCurEnemyHand(), tmp, move};
+
         // 递归计算对方的最佳动作
         bestAction enemyBest = calculateBestAction(newStatus);
         // 如果此动作得到敌方的maxscore，说明动作不可行
